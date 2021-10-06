@@ -1,0 +1,33 @@
+{
+    "app_name": "Cinq",
+    "socket_port": 8050,
+    "site_link": "https://cinq.me/",
+    "api_link": "https://api.cinq.me/",
+    "db_config": {
+        "host": "localhost",
+        "user": "cinqme_user",
+        "password": "fhyqDwdokToS",
+        "database": "cinqme_master",
+        "debug": false,
+        "dateStrings": "date",
+        "multipleStatements": true
+    },
+    "email": {
+        "host": "srv.willvin.com",
+        "port": 465,
+        "secure": true,
+        "auth": {
+            "user": "noreply@cinq.me",
+            "pass": "5rYh4YEPgJFD"
+        },
+        "sender": "\"CINQ\" <noreply@cinq.me> "
+    },
+    "sms_msmpusher": {
+        "host": "https://api.msmpusher.net/v1/send",
+        "privatekey": "2021072720000980",
+        "publickey": "f61b84c93e207ad5",
+        "sender": "Cinq"
+    },
+    "paymentKeyGH": "sk_test_edfc20e50606f570bbe7d58a035a6572c5372dc8",
+    "paymentKeyNG": "sk_test_27bc65659cba75f5ba26f875a4cd6c6f85a2e5f6"
+}
