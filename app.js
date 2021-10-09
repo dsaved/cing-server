@@ -5,6 +5,7 @@ global.baseDir = __dirname;
 
 var express = require('express');
 const listener = require('./app/socket')
+const backgoundService = require('./app/background-service')
 
 const cors = require('cors');
 const logger = require('./middleware/logger');
@@ -36,20 +37,9 @@ app.use(function(req, res, next) {
 sqlConn = mysql.createConnection(conf.db_config);
 sqlConn.connect(function(err) {
     if (err) return console.log(err);
+    backgoundService.start()
     listener.start(io, conf.db_config)
     server.listen(conf.socket_port, async() => {
         console.log('Server listening on :%d ', conf.socket_port);
     });
 });
-
-function getTime(dateTime) {
-    function pad(s) { return (s < 10) ? '0' + s : s; }
-    if (dateTime) {
-        var today = new Date();
-        var time = [pad(today.getFullYear()), pad(today.getMonth() + 1), today.getDate()].join('-') + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        return time;
-    }
-    var today = new Date();
-    var time = pad(today.getHours()) + ":" + pad(today.getMinutes()) + ":" + pad(today.getSeconds());
-    return time;
-}

@@ -165,4 +165,11 @@ module.exports = {
         var time = pad(today.getHours()) + ":" + pad(today.getMinutes()) + ":" + pad(today.getSeconds());
         return time;
     },
+    getAccessKey(country) {
+        let pKey = conf.paymentKeyGH
+        if (country.toLowerCase() === "ng") {
+            pKey = conf.paymentKeyNG
+        }
+        return pKey
+    },
 }

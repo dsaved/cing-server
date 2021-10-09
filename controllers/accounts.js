@@ -3,50 +3,18 @@ const encrypt = new encryption();
 const Pagination = require('../library/MYSqlPagination');
 const mysql = require('../library/mysql');
 const functions = require('../helpers/functions');
+const Uploader = require('../helpers/fileUpload');
 const Configuration = require('../library/Configs');
 const conf = Configuration.getConfig();
-
-//file import
-const path = require('path');
-const multer = require('multer');
-var fs = require('fs');
 
 //database tables
 const users_table = "users";
 const userColumns = 'id as user_id,first_name,last_name,phone,email,photo,country,created';
 
-const maxSize = 15 * 1000 * 1000;
-let filename = "";
+//file upload
 const placeholder = 'placeholder.jpg'
-const uploads = 'uploads'
 const public = './public'
-const destination = `${public}/${uploads}`;
-//define storage engine
-const storage = multer.diskStorage({
-    destination: destination,
-    filename: (req, file, callback) => {
-        filename = file.originalname + '-' + Date.now() + path.extname(file.originalname);
-        callback(null, filename);
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: maxSize },
-    fileFilter: (request, file, callback) => {
-        //allowed extensions
-        const allowedFilesTypes = /gif|jpeg|png|svg|jpg/;
-        //check extension
-        const extname = allowedFilesTypes.test(path.extname(file.originalname).toLowerCase());
-        //check mime type
-        const mimetype = /image\/*/.test(file.mimetype);
-        if (extname && mimetype) {
-            callback(null, true);
-        } else {
-            callback('please upload allowed files only');
-        }
-    }
-}).single('photo');
+var fs = require('fs');
 
 module.exports = {
     async userInfo(request, response) {
@@ -95,11 +63,7 @@ module.exports = {
         }
 
         await db.query(`SELECT ${userColumns} FROM ${users_table} user WHERE id= ${user_id}`).catch(error => {
-            response.status(500).json({
-                success: false,
-                message: "Internal server error",
-                error
-            });
+            response.sendFile(placeholder, { root: `${__dirname}/../public/images` });
             return
         })
         if (db.count() > 0) {
@@ -298,23 +262,25 @@ module.exports = {
         }
     },
     async userPhotoUpdate(request, response) {
+        const uploader = new Uploader();
+        let [upload, location] = uploader.single({ key: 'photo', allowedFile: Uploader.IMAGE });
         upload(request, response, async(error) => {
             if (error) {
                 response.status(403).json({ success: false, message: error });
             } else {
                 const params = request.body;
-                const location = uploads + "/" + filename;
                 const user_id = (params.user_id) ? params.user_id : null;
+                const filename = uploader.getFilename();
+                const fileDir = location + filename;
 
                 if (!user_id) {
                     try {
-                        fs.unlinkSync(`${public}/${location}`);
+                        fs.unlinkSync(`${public}/${fileDir}`);
                     } catch (error) {}
-                    response.status(403).json({
+                    return response.status(403).json({
                         message: 'Please provide user id',
                         success: false
                     });
-                    return;
                 }
 
                 const db = new mysql(conf.db_config);
@@ -334,7 +300,7 @@ module.exports = {
                         } catch (error) {}
                     }
                     const insertData = {
-                        photo: location,
+                        photo: fileDir,
                     }
                     const done = await db.update(users_table, 'id', user_id, insertData).catch(error => {
                         response.status(500).json({

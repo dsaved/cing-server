@@ -84,11 +84,7 @@ module.exports = {
             return
         }
         const accountTo = db.first();
-
-        let key = conf.paymentKeyNG
-        if (accountFrom.country.toLowerCase() === 'gh') {
-            key = conf.paymentKeyGH
-        }
+        const key = functions.getAccessKey(accountFrom)
 
         // Get the currency of the sending account
         const countryData = getCountry(accountFrom.country);
@@ -97,7 +93,7 @@ module.exports = {
         } else if (accountFrom.account_type === "mobile money") {
             const payload = {
                 amount,
-                email: accountTo.email,
+                email: accountTo.email, // sender email
                 currency: countryData.currency,
                 mobile_money: {
                     phone: accountFrom.account_number,

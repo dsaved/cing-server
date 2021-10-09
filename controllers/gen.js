@@ -97,10 +97,7 @@ module.exports = {
             return;
         }
 
-        let key = conf.paymentKeyNG
-        if (country.toLowerCase() === 'gh') {
-            key = conf.paymentKeyGH
-        }
+        const key = functions.getAccessKey(country)
 
         const paystack = new Paystack()
         const rersult = await paystack

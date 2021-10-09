@@ -55,7 +55,7 @@ class mysql {
 
         for (const param in params) {
             // console.log(param, params[param], typeof params[param])
-            if (typeof params[param] === "number" || typeof params[param] === "bigint") {
+            if (typeof params[param] === "number" || typeof params[param] === "bigint" || typeof params[param] === "object") {
                 this._query = `${this._query}`.replace("?", `${params[param]}`);
             } else {
                 let value = `${params[param]}`.trim();

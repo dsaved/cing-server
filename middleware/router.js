@@ -54,4 +54,25 @@ module.exports = function(app) {
     // transfer cash
     app.post('/transfer', authorizer, pay.cinq)
 
+    app.post('/test-validate', async(request, response, next) => {
+        const params = request.body;
+        const name = (params.name) ? params.name : null;
+        const phone = (params.phone) ? params.phone : null;
+        const email = (params.email) ? params.email : null;
+
+        const required = ['name', 'email', 'phone'];
+        for (let index = 0; index < required.length; index++) {
+            const element = required[index];
+            console.log(element)
+            if (!params[element]) {
+                response.status(403).json({
+                    message: `Please provide ${element}`,
+                    success: false
+                });
+                return;
+            }
+        }
+
+        response.status(200).json('done');
+    })
 }

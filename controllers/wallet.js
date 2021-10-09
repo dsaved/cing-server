@@ -2,6 +2,7 @@ const mysql = require('../library/mysql');
 const functions = require('../helpers/functions');
 const Configuration = require('../library/Configs');
 const { Paystack } = require('../library/Paystack');
+const { getCountry } = require('../library/CountryCode');
 const conf = Configuration.getConfig();
 
 //database tables
@@ -121,13 +122,10 @@ module.exports = {
             return;
         }
 
-        let pKey = conf.paymentKeyGH
-        if (country.toLowerCase() === "ng") {
-            pKey = conf.paymentKeyNG
-        }
+        const key = functions.getAccessKey(country)
         const paystack = new Paystack();
         const result = await paystack.setAccountNumber(account_number)
-            .setAuthorization(pKey)
+            .setAuthorization(key)
             .setBankCode(bank_code).verifyBank().catch(error => {
                 response.status(500).json({
                     success: false,
@@ -239,6 +237,33 @@ module.exports = {
             return;
         }
 
+        let recipient_code = null
+        if (wallet_type === 'receiver') {
+            const _country = getCountry(country);
+            const key = functions.getAccessKey(_country.shortName)
+            const paystack = new Paystack();
+            const result = await paystack.setAccountNumber(account_number)
+                .setAccountName(account_name)
+                .setCurrency(_country.currency)
+                .setAuthorization(key)
+                .setBankCode(bank_code).createTransferRecipient().catch(error => {
+                    response.status(500).json({
+                        success: false,
+                        message: "Internal server error",
+                        error
+                    });
+                    return
+                })
+            if (result.success) {
+                recipient_code = result.data.recipient_code;
+            } else {
+                return response.status(422).json({
+                    success: false,
+                    message: 'Could not create wallet'
+                });
+            }
+        }
+
         let recordData = {
             account_name: account_name,
             account_number: account_number,
@@ -247,6 +272,7 @@ module.exports = {
             institute: institute,
             bank_code: bank_code,
             type: wallet_type,
+            recipient_code: recipient_code,
             user_id: user_id,
         }
 

@@ -14,6 +14,7 @@ class Paystack {
         this.payload = null;
         this.transaction_id = null;
         this.currency = null;
+        this.account_name = null;
         this.account_number = null;
         this.bank_code = null;
     }
@@ -44,6 +45,11 @@ class Paystack {
 
     setAccountNumber(_account_number) {
         this.account_number = _account_number;
+        return this;
+    }
+
+    setAccountName(_account_name) {
+        this.account_name = _account_name;
         return this;
     }
 
@@ -311,6 +317,49 @@ class Paystack {
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.Authorization}`
         axios.defaults.headers.common['Content-Type'] = 'application/json'
         await axios.get(_link)
+            .then(function(result) {
+                let response = result.data
+                if (response.status) {
+                    res.success = true
+                    res.message = response.message
+                    res.data = response.data;
+                } else {
+                    res.success = false
+                    res.message = response.message
+                }
+            })
+            .catch(function(error) {
+                console.log(error)
+                res.success = false
+                res.message = error
+            });
+
+        return res;
+    }
+
+    async createTransferRecipient() {
+        if (this.empty(this.account_number)) {
+            throw new Error("account_number is required ");
+        }
+        if (this.empty(this.account_name)) {
+            throw new Error("account_name is required ");
+        }
+        if (this.empty(this.bank_code)) {
+            throw new Error("bank_code is required ");
+        }
+
+        let res = { success: false, message: '', data: {} };
+        const _link = `${this.api_link}transferrecipient`;
+
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.Authorization}`
+        axios.defaults.headers.common['Content-Type'] = 'application/json'
+        await axios.post(_link, {
+                type: "nuban",
+                name: this.account_name,
+                account_number: this.account_number,
+                bank_code: `${this.bank_code}`.toUpperCase(),
+                currency: this.currency
+            })
             .then(function(result) {
                 let response = result.data
                 if (response.status) {
