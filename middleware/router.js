@@ -37,7 +37,6 @@ module.exports = function(app) {
     app.post('/wallet/list', authorizer, Wallet.listWallet)
     app.post('/wallet/single', authorizer, Wallet.walletInfo)
     app.post('/wallet/create', authorizer, Wallet.createWallet)
-    app.post('/wallet/update', authorizer, Wallet.updateWallet)
     app.post('/wallet/delete', authorizer, Wallet.deleteWallet)
     app.post('/test', async(request, response, next) => {
         const sentSMS = await functions.sendSMS('233543848378', `Your one time password is: 1111 Please do not share with anyone`).catch(error => {

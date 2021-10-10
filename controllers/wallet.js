@@ -31,7 +31,7 @@ module.exports = {
         }
 
         const db = new mysql(conf.db_config);
-        await db.query(`SELECT ${table_fields} FROM ${wallet_table} WHERE user_id=${user_id} AND type='${wallet_type}' AND deleted=0`).catch(error => {
+        await db.query(`SELECT ${table_fields} FROM ${wallet_table} WHERE user_id=${user_id} AND (type='${wallet_type}' OR use_for_sending_reciving=1) AND deleted=0`).catch(error => {
             response.status(500).json({
                 success: false,
                 message: "Internal server error",
@@ -153,63 +153,26 @@ module.exports = {
         const wallet_type = (params.wallet_type) ? params.wallet_type : null;
         const institute = (params.institute) ? params.institute : null;
         const bank_code = (params.bank_code) ? params.bank_code : null;
+        const use_for_sending_reciving = (params.use_for_sending_reciving) ? params.use_for_sending_reciving : false;
 
-        if (!account_name) {
-            response.status(403).json({
-                message: 'Please provide account_name',
-                success: false
-            });
-            return;
-        }
-        if (!account_number) {
-            response.status(403).json({
-                message: 'Please provide account_number',
-                success: false
-            });
-            return;
-        }
-        if (!account_type) {
-            response.status(403).json({
-                message: 'Please provide account_type',
-                success: false
-            });
-            return;
-        }
-        if (!country) {
-            response.status(403).json({
-                message: 'Please provide country',
-                success: false
-            });
-            return;
-        }
-        if (!user_id) {
-            response.status(403).json({
-                message: 'Please provide user_id',
-                success: false
-            });
-            return;
-        }
-        if (!wallet_type) {
-            response.status(403).json({
-                message: 'Please provide wallet_type',
-                success: false
-            });
-            return;
-        }
-        if (!institute) {
-            response.status(403).json({
-                message: 'Please provide institute',
-                success: false
-            });
-            return;
-        }
-
-        if (!bank_code) {
-            response.status(403).json({
-                message: 'Please provide bank_code',
-                success: false
-            });
-            return;
+        const required = [
+            'account_name',
+            'account_number',
+            'account_type',
+            'country',
+            'user_id',
+            'wallet_type',
+            'institute',
+            'bank_code'
+        ];
+        for (let index = 0; index < required.length; index++) {
+            const element = required[index];
+            if (!params[element]) {
+                return response.status(403).json({
+                    message: `Please provide ${element}`,
+                    success: false
+                });
+            }
         }
 
         if (account_type !== "mobile money" && account_type !== "bank") {
@@ -238,7 +201,7 @@ module.exports = {
         }
 
         let recipient_code = null
-        if (wallet_type === 'receiver') {
+        if (wallet_type === 'receiver' || use_for_sending_reciving === true) {
             const _country = getCountry(country);
             const key = functions.getAccessKey(_country.shortName)
             const paystack = new Paystack();
@@ -273,7 +236,11 @@ module.exports = {
             bank_code: bank_code,
             type: wallet_type,
             recipient_code: recipient_code,
-            user_id: user_id,
+            user_id: user_id
+        }
+
+        if (use_for_sending_reciving === true) {
+            recordData.use_for_sending_reciving = 1
         }
 
         const done = await db.insert(wallet_table, recordData).catch(error => {
@@ -298,132 +265,6 @@ module.exports = {
             response.status(422).json({
                 success: false,
                 message: 'Could not create wallet'
-            });
-        }
-    },
-    async updateWallet(request, response) {
-        const params = request.body;
-        const db = new mysql(conf.db_config);
-
-        const account_name = (params.account_name) ? params.account_name : null;
-        const account_number = (params.account_number) ? params.account_number : null;
-        const account_type = (params.account_type) ? params.account_type : null;
-        const country = (params.country) ? params.country : null;
-        const user_id = (params.user_id) ? params.user_id : null;
-        const wallet_id = (params.wallet_id) ? params.wallet_id : null;
-        const wallet_type = (params.wallet_type) ? params.wallet_type : null;
-        const institute = (params.institute) ? params.institute : null;
-        const bank_code = (params.bank_code) ? params.bank_code : null;
-
-        if (!wallet_id) {
-            response.status(403).json({
-                message: 'Please provide wallet_id',
-                success: false
-            });
-            return;
-        }
-        if (!account_name) {
-            response.status(403).json({
-                message: 'Please provide account_name',
-                success: false
-            });
-            return;
-        }
-        if (!account_number) {
-            response.status(403).json({
-                message: 'Please provide account_number',
-                success: false
-            });
-            return;
-        }
-        if (!account_type) {
-            response.status(403).json({
-                message: 'Please provide account_type',
-                success: false
-            });
-            return;
-        }
-        if (!user_id) {
-            response.status(403).json({
-                message: 'Please provide user_id',
-                success: false
-            });
-            return;
-        }
-        if (!country) {
-            response.status(403).json({
-                message: 'Please provide country',
-                success: false
-            });
-            return;
-        }
-        if (!wallet_type) {
-            response.status(403).json({
-                message: 'Please provide wallet_type',
-                success: false
-            });
-            return;
-        }
-        if (!institute) {
-            response.status(403).json({
-                message: 'Please provide institute',
-                success: false
-            });
-            return;
-        }
-
-        if (!bank_code) {
-            response.status(403).json({
-                message: 'Please provide bank_code',
-                success: false
-            });
-            return;
-        }
-
-        await db.query(`select account_name from ${wallet_table} where account_number = '${account_number}' and type='${wallet_type}' and user_id=${user_id} and id!=${wallet_id}`).catch(error => {
-            response.status(500).json({
-                success: false,
-                message: "Internal server error",
-                error
-            });
-            return
-        })
-        if (db.count() > 0) {
-            response.status(403).json({
-                message: 'this account already exist',
-                success: false
-            });
-            return;
-        }
-
-        let recordData = {
-            account_name: account_name,
-            account_number: account_number,
-            account_type: account_type,
-            institute: institute,
-            bank_code: bank_code,
-            country: country,
-            type: wallet_type,
-        }
-
-        const done = await db.update(wallet_table, 'id', wallet_id, recordData).catch(error => {
-            response.status(500).json({
-                success: false,
-                message: "Internal server error",
-                error
-            });
-            return
-        })
-
-        if (done) {
-            response.status(200).json({
-                success: true,
-                message: "Wallet updated successfully"
-            });
-        } else {
-            response.status(422).json({
-                success: false,
-                message: 'Could not update wallet'
             });
         }
     },
