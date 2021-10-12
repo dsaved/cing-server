@@ -183,7 +183,7 @@ module.exports = {
             return;
         }
 
-        await db.query(`select account_name from ${wallet_table} where account_number = '${account_number}' and type='${wallet_type}' and user_id=${user_id}`).catch(error => {
+        await db.query(`select id,created, deleted from ${wallet_table} where account_number = '${account_number}' and type='${wallet_type}' and user_id=${user_id}`).catch(error => {
             response.status(500).json({
                 success: false,
                 message: "Internal server error",
@@ -193,11 +193,23 @@ module.exports = {
         })
 
         if (db.count() > 0) {
-            response.status(403).json({
-                message: 'this account already exist',
-                success: false
-            });
-            return;
+            const wallet = db.first();
+            if (Number(wallet.deleted) === 1) {
+                await db.update(wallet_table, 'id', wallet.id, { deleted: 0 })
+                return response.status(200).json({
+                    success: true,
+                    message: "Wallet created successfully",
+                    data: {
+                        wallet_id: wallet.id,
+                        created: wallet.created
+                    }
+                });
+            } else {
+                return response.status(403).json({
+                    message: 'this account already exist',
+                    success: false
+                });
+            }
         }
 
         let recipient_code = null
@@ -322,7 +334,7 @@ module.exports = {
         } else {
             response.status(422).json({
                 success: false,
-                message: 'Could not deleted Wallet(s)'
+                message: 'Could not delete Wallet(s)'
             });
         }
     },
