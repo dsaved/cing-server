@@ -37,7 +37,7 @@ async function getExchangeRate(from = "NGN", to = "GHS", amount = 1000) {
                 let words_sending = formaterFrom.format(amount)
                 let _result = {}
                 if (response.success) {
-                    _result.sendging = {
+                    _result.sending = {
                         amount: amount,
                         words: words_sending
                     };
