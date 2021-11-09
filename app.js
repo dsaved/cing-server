@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.use(express.static('public'))
 
-var sqlConn;
 const conf = Configuration.getConfig();
 
 // app.use(logger); // log all request
@@ -33,13 +32,8 @@ app.use(function(req, res, next) {
     res.send({ success: false, message: '404 page not found' });
 });
 
-// create mysql connection to database
-sqlConn = mysql.createConnection(conf.db_config);
-sqlConn.connect(function(err) {
-    if (err) return console.log(err);
-    backgoundService.start()
-    listener.start(io, conf.db_config)
-    server.listen(conf.socket_port, async() => {
-        console.log('Server listening on :%d ', conf.socket_port);
-    });
+backgoundService.start()
+listener.start(io)
+server.listen(conf.socket_port, async() => {
+    console.log('Server listening on :%d ', conf.socket_port);
 });

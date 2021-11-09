@@ -3,7 +3,7 @@ const mysql = require('../library/mysql');
 
 const axios = require('axios');
 const socketConnect = {
-    start: async(io, db_config) => {
+    start: async(io) => {
         try {
             io.on('connection', function(socket) {
                 console.log('client connected')
@@ -12,16 +12,6 @@ const socketConnect = {
                 socket.on('new_connection', data => {
                     //first message sent to confirm if client can receive message
                     socket.emit('event_response', "Welcome!");
-                });
-
-                //check online status of a connected user
-                socket.on('trading', async data => {
-                    sendTrade(io, db_config);
-                });
-
-                //check online status of a connected user
-                socket.on('abouttotrade', async data => {
-                    sendAboutToBuy(io, db_config);
                 });
 
                 // when the user disconnects.. perform this

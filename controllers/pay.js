@@ -84,12 +84,12 @@ module.exports = {
             return
         }
         const accountTo = db.first();
-        const key = functions.getAccessKey(accountFrom)
+        const key = functions.getAccessKey(accountFrom.country)
 
         // Get the currency of the sending account
         const countryData = getCountry(accountFrom.country);
         if (accountFrom.account_type === "bank") {
-
+            response.status(501).json({ success: false, message: "Transaction Not Implement" })
         } else if (accountFrom.account_type === "mobile money") {
             const payload = {
                 amount,

@@ -1,7 +1,7 @@
 function countryArray() {
     return [
-        { shortName: 'GH', code: '233', name: 'Ghana', currency: 'GHS' },
-        { shortName: 'NG', code: '234', name: 'Nigeria', currency: 'NGN' }
+        { shortName: 'GH', code: '233', name: 'Ghana', currency: 'GHS', min_transaction: '100' },
+        { shortName: 'NG', code: '234', name: 'Nigeria', currency: 'NGN', min_transaction: '5000' }
     ]
 }
 
