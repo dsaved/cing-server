@@ -52,6 +52,7 @@ module.exports = function(app) {
 
     // transfer cash
     app.post('/transfer', authorizer, pay.cinq)
+    app.post('/otp-transfer-validation', authorizer, pay.validateOtp)
 
     app.post('/test-validate', async(request, response, next) => {
         const params = request.body;

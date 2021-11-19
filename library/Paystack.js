@@ -217,7 +217,35 @@ class Paystack {
 
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.Authorization}`
         axios.defaults.headers.common['Content-Type'] = 'application/json'
-        await axios.post(this.api_link, payload)
+        await axios.post(_link, payload)
+            .then(function(result) {
+                let response = result.data
+                console.log("response", response)
+                res.success = response.status
+                res.message = response.message
+                res.data = response.data
+            })
+            .catch(function(error) {
+                console.log("error", error.response.status)
+                res.success = false
+                res.message = error.message
+                res.data = error.response.data
+                res.status = error.response.status
+            });
+        return res;
+    }
+
+    async submitOtp() {
+        if (this.empty(this.payload)) {
+            throw new Error("payload is required ");
+        }
+        const _link = `${this.api_link}charge/submit_otp`;
+        let payload = this.payload
+        let res = { success: null, data: {}, message: null };
+
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.Authorization}`
+        axios.defaults.headers.common['Content-Type'] = 'application/json'
+        await axios.post(_link, payload)
             .then(function(result) {
                 let response = result.data
                 console.log(response)
@@ -228,7 +256,9 @@ class Paystack {
             .catch(function(error) {
                 console.log(error)
                 res.success = false
-                res.message = error
+                res.message = error.message
+                res.data = error.response.data
+                res.status = error.response.status
             });
         return res;
     }

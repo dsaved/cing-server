@@ -10,6 +10,7 @@ const { result } = require('underscore');
 
 //database tables
 const wallet_table = "wallet";
+const cinq = "cinqs";
 const table_fields = "id wallet_id, user_id,account_name,account_number,account_type,country,institute,bank_code,type,created";
 
 
@@ -51,6 +52,7 @@ module.exports = {
             return;
         }
 
+        const _amount = parseFloat(amount) * 100;
         const db = new mysql(conf.db_config);
 
 
@@ -89,10 +91,10 @@ module.exports = {
         // Get the currency of the sending account
         const countryData = getCountry(accountFrom.country);
         if (accountFrom.account_type === "bank") {
-            response.status(501).json({ success: false, message: "Transaction Not Implement" })
+            return response.status(501).json({ success: false, message: "Transaction Not Implement" })
         } else if (accountFrom.account_type === "mobile money") {
             const payload = {
-                amount,
+                amount: _amount,
                 email: accountTo.email, // sender email
                 currency: countryData.currency,
                 mobile_money: {
@@ -106,8 +108,61 @@ module.exports = {
                 .setAuthorization(key)
                 .setPayload(payload)
                 .momoPay()
-            return response.status(200).json(result)
+            if (result.success) {
+                await db.insert(cinq, { user_id: user_id, wallet_id_from: from_account, wallet_id_to: to_account, reference: result.data.reference })
+                return response.status(200).json(result)
+            } else {
+                return response.status(result.status).json(result)
+            }
         }
         response.status(422).json({ success: false, message: "unable to proccess payment" })
     },
+
+    async validateOtp(request, response) {
+        const params = request.body;
+
+        const reference = (params.reference) ? params.reference : null;
+        const otp = (params.otp) ? params.otp : null;
+
+        if (!reference) {
+            response.status(403).json({
+                message: 'Please provide reference',
+                success: false
+            });
+            return;
+        }
+        if (!otp) {
+            response.status(403).json({
+                message: 'Please provide otp',
+                success: false
+            });
+            return;
+        }
+
+        const db = new mysql(conf.db_config);
+        // GET THE SENDER WALLET COUNTRY TO PROCCESS THE PAYMENT
+        await db.query(`SELECT country FROM ${wallet_table} w LEFT JOIN ${cinq} c ON c.wallet_id_from=w.id WHERE c.reference='${reference}' `).catch(error => {
+            return response.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error
+            });
+        })
+        if (db.count() <= 0) {
+            return response.status(404).json({ success: false, message: 'reference not found' });
+        }
+        const accountFrom = db.first();
+        const key = functions.getAccessKey(accountFrom.country)
+
+        const paystack = new Paystack()
+        const result = await paystack
+            .setAuthorization(key)
+            .setPayload({ otp, reference })
+            .submitOtp()
+        if (result.success) {
+            return response.status(200).json(result)
+        } else {
+            return response.status(result.status).json(result)
+        }
+    }
 };
