@@ -17,17 +17,17 @@
         "port": 465,
         "secure": true,
         "auth": {
-            "user": "noreply@cinq.me",
-            "pass": "5rYh4YEPgJFD"
+            "user": "523452345.25",
+            "pass": "52345234525"
         },
         "sender": "\"CINQ\" <noreply@cinq.me> "
     },
     "sms_msmpusher": {
         "host": "https://api.msmpusher.net/v1/send",
-        "privatekey": "2021072720000980",
-        "publickey": "f61b84c93e207ad5",
+        "privatekey": "5525252345",
+        "publickey": "353452525",
         "sender": "Cinq"
     },
-    "paymentKeyGH": "sk_live_f707c3805f978aa0122fdce32c7d1a0384bacc2f",
-    "paymentKeyNG": "sk_test_27bc65659cba75f5ba26f875a4cd6c6f85a2e5f6"
+    "paymentKeyGH": "*************************************"
+    "paymentKeyNG": "*************************************"
 }
