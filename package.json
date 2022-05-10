@@ -3,6 +3,10 @@
     "version": "1.0.0",
     "description": "",
     "main": "app.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/dsaved/cing-server.git"
+    },
     "scripts": {
         "start": "nodemon app.js"
     },
@@ -12,8 +16,7 @@
     "license": "ISC",
     "dependencies": {
         "axios": "^0.21.4",
-        "bcrypt": "^5.0.0",
-        "convert-excel-to-json": "^1.7.0",
+        "bcrypt": "^5.0.1",
         "cors": "^2.8.5",
         "crypto": "^1.0.1",
         "debug": "^3.1.0",
