@@ -6,4 +6,4 @@
 `npm install`
 
 ## start for development
-`npm start`
+`npm run start`
