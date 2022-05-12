@@ -1,24 +1,19 @@
 class encryption {
     constructor() {
-        this.bcrypt = require('bcrypt');
+        this.encrypt = require('bcryptjs');
     }
 
-    hash(text) {
-        const vm = this;
-        return new Promise(function(resolve, reject) {
-            vm.bcrypt.hash(text, 10, function(err, hash) {
-                if (err) reject(err);
-                resolve(hash);
-            });
-        });
+    async hash(text) {
+        let salt = await this.salt(10);
+        return await this.encrypt.hashSync(text, salt);
     }
 
     async compare(password, hash) {
-        return await this.bcrypt.compare(password, hash);
+        return await this.encrypt.compareSync(password, hash);
     }
 
     async salt(count) {
-        return await this.bcrypt.genSalt(count)
+        return this.encrypt.genSaltSync(count)
     }
 }
 
